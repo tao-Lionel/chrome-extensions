@@ -1,10 +1,10 @@
 // 官方配置文档 https://developer.chrome.com/docs/extensions/mv3/manifest/
 
 {
-  "name": "TAPD-DingDing",
+  "name": "账户管理",
   "version": "1.0",
   "manifest_version": 3,
-  "description": "TAPD缺陷推送到钉钉", // 插件描述
+  "description": "管理多个账户", // 插件描述
   "author": "", // 开发者
   // 插件图标
   "icons": {
@@ -43,17 +43,17 @@
     }
   ],
   "host_permissions": ["http://*/*", "https://*/*"], // 允许使用权限的域名
-  "permissions": ["notifications", "background", "webRequest", "storage", "tabs"],
+  "permissions": ["background", "webRequest", "storage", "tabs"],
 
   "web_accessible_resources": [
-    {
-      "resources": ["img/48.png"],
-      "matches": ["https://www.tapd.cn/*"]
-    },
-    {
-      "resources": ["/js/contacts.json"],
-      "matches": ["https://www.tapd.cn/*"],
-      "use_dynamic_url": true
-    }
+    // {
+    //   "resources": ["img/48.png"],
+    //   "matches": ["https://www.tapd.cn/*"]
+    // },
+    // {
+    //   "resources": ["/js/contacts.json"],
+    //   "matches": ["https://www.tapd.cn/*"],
+    //   "use_dynamic_url": true
+    // }
   ]
 }
