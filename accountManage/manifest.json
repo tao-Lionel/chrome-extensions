@@ -1,0 +1,59 @@
+// 官方配置文档 https://developer.chrome.com/docs/extensions/mv3/manifest/
+
+{
+  "name": "TAPD-DingDing",
+  "version": "1.0",
+  "manifest_version": 3,
+  "description": "TAPD缺陷推送到钉钉", // 插件描述
+  "author": "", // 开发者
+  // 插件图标
+  "icons": {
+    "16": "img/16.png",
+    "48": "img/48.png",
+    "128": "img/128.png"
+  },
+
+  /*
+   *【重要】插件的后台服务工作，在需要时加载，在空闲时卸载
+   * 有效的后台脚本会一直处于休眠状态，直到它们正在侦听的事件触发，按照指定的指令做出反应，然后卸载。
+   * "background"此字段使用"service_worker"指定单个 JavaScript 文件, "service_worker"指定的文件必须位于扩展的根目录中。
+   */
+  "background": {
+    "service_worker": "serviceWorker.js"
+  },
+
+  // 【重要】action 配置主要是点击图标弹出框
+  "action": {
+    "default_title": "打开配置",
+    "default_popup": "html/index.html"
+  },
+
+  /*
+   * 【重要】内容脚本
+   * 内容脚本是在网页上下文中运行的文件，他们能够读取浏览器访问的网页的详细信息，对其进行更改，并将信息传递给其父扩展
+   *
+   * 使用静态声明注入，它们可以包括 JavaScript 文件、CSS 文件或两者兼有
+   *
+   */
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"], // 必需的。指定此内容脚本将被注入到哪些页面 <all_urls>匹配任何以允许的方案开头的 URL
+      "js": ["js/jquery-3.5.1.min.js", "js/contentScripts.js"]
+      // "css": []
+    }
+  ],
+  "host_permissions": ["http://*/*", "https://*/*"], // 允许使用权限的域名
+  "permissions": ["notifications", "background", "webRequest", "storage", "tabs"],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["img/48.png"],
+      "matches": ["https://www.tapd.cn/*"]
+    },
+    {
+      "resources": ["/js/contacts.json"],
+      "matches": ["https://www.tapd.cn/*"],
+      "use_dynamic_url": true
+    }
+  ]
+}
