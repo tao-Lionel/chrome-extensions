@@ -1,0 +1,39 @@
+{
+  "name": "TAPD-DingDing",
+  "version": "1.0",
+  "manifest_version": 3,
+  "description": "TAPD缺陷推送到钉钉",
+  "action": {
+    "default_title": "打开配置",
+    "default_popup": "html/index.html"
+  },
+  "icons": {
+    "16": "img/16.png",
+    "48": "img/48.png",
+    "128": "img/128.png"
+  },
+  "author": "",
+  "background": {
+    "service_worker": "serviceWorker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.tapd.cn/*"],
+      "js": ["js/jquery-3.5.1.min.js", "js/contentScripts.js"]
+    }
+  ],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "permissions": ["notifications", "background", "webRequest", "storage","tabs"],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["img/48.png"],
+      "matches": ["https://www.tapd.cn/*"]
+    },
+    {
+      "resources":["/js/contacts.json"],
+      "matches":["https://www.tapd.cn/*"],
+      "use_dynamic_url":true
+    }
+  ]
+}
