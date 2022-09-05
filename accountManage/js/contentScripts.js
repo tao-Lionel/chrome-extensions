@@ -5,6 +5,7 @@
 // import Cookies from './js.cookie.js'
 
 $(function () {
+  console.log('我自己登陆')
   async function sendSms() {
     var url = '/gateway/main/sys/sms/sendSms'
     var options = {
