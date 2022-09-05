@@ -37,8 +37,8 @@
    */
   "content_scripts": [
     {
-      "matches": ["<all_urls>"], // 必需的。指定此内容脚本将被注入到哪些页面 <all_urls>匹配任何以允许的方案开头的 URL
-      "js": ["js/jquery-3.5.1.min.js", "js/contentScripts.js"]
+      "matches": ["http://localhost/*", "https://localhost/*"], // 必需的。指定此内容脚本将被注入到哪些页面 <all_urls>匹配任何以允许的方案开头的 URL
+      "js": ["js/jquery-3.5.1.min.js", "js/contentScripts.js", "js/js.cookie.js"]
       // "css": []
     }
   ],
