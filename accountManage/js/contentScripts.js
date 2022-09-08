@@ -4,7 +4,7 @@
 // })
 // import Cookies from './js.cookie.js'
 
-$(function () {
+$(async function () {
   console.log('我自己登陆')
   async function sendSms() {
     var url = '/gateway/main/sys/sms/sendSms'
@@ -14,7 +14,7 @@ $(function () {
         'Content-type': 'application/json'
       },
       body: JSON.stringify({
-        mobile: "",
+        mobile: "13821952053",
         smsType: 3
       })
     }
@@ -36,7 +36,7 @@ $(function () {
         app: 2,
         domain: "",
         platform: 1,
-        username: "",
+        username: "13821952053",
         verifyCode: "1234",
       })
     }
@@ -61,7 +61,7 @@ $(function () {
   }
 
   if (window.location.pathname === '/login') {
-    sendSms()
+    await sendSms()
     login()
   }
 });
