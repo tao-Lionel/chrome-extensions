@@ -50,9 +50,14 @@ $(async function () {
       if (Cookies.get('xhs_token') && Cookies.get('xhs_refresh_token')) {
         // 根据端口号跳页面
         let url = '/my/first/index'
-        if (window.location.port === "3004") {
+        let { host, port } = window.location
+        console.log(host);
+        if (port === "3004" || host.includes('.crm.youliao.com') || host.includes('test-yun.youliao.com')) {
           url = '/work/index'
+        } else if (port === "3006") {
+          url = '/news/list'
         }
+
         window.open(url, '_self')
       }
     } catch (error) {
