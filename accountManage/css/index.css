@@ -34,12 +34,6 @@
     width: 300px;
     padding: 10px;
 }
-#sendTarget0,#sendTarget1,#sendTarget2,#sendTarget3{
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
-
-}
-#sendTarget0 input,#sendTarget1 input,#sendTarget2 input,#sendTarget3 input {
-    margin-bottom: 5px;
+.btn {
+    padding: 10px 15px;
 }

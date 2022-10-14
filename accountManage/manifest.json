@@ -43,7 +43,7 @@
     }
   ],
   "host_permissions": ["http://*/*", "https://*/*"], // 允许使用权限的域名
-  // "permissions": ["background", "webRequest", "storage", "tabs"],
+  "permissions": ["background", "webRequest", "storage", "tabs"],
 
   "web_accessible_resources": [
     // {
