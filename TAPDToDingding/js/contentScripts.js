@@ -6,22 +6,6 @@ var sendTargets = [
     // 测试用
     // webhook: "", 
   },
-  // {
-  //   projectName: "有料云",
-  //   webhook: ""
-  // },
-  // {
-  //   projectName: "西红市",
-  //   webhook: "",
-  // },
-  // {
-  //   projectName: "有料网",
-  //   webhook: "",
-  // },
-  // {
-  //   projectName: "线上问题汇总",
-  //   webhook: "",
-  // },
 ];
 
 // 产品验收群机器人
