@@ -52,11 +52,14 @@ $(async function () {
         // 根据端口号跳页面
         let url = '/my/first/index'
         let { host, port } = window.location
-        console.log(host);
-        if (port === "3004" || host.includes('.crm.youliao.com') || host.includes('test-yun.youliao.com')) {
+        if (port === "3004" || host.includes('test-demo.yun.youliao.com')) {
           url = '/work/index'
+        } else if (host.includes('test-yun.youliao.com')) {
+          url = 'https://test-demo.yun.youliao.com/work/index'
         } else if (port === "3006") {
           url = '/news/list'
+        } else if (host.includes('test-demo.crm.youliao.com')) {
+          url = '/my/first/index'
         }
 
         window.open(url, '_self')

@@ -10,7 +10,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://localhost/*", "https://localhost/*"],
+      "matches": ["http://localhost/*", "https://localhost/*","http://127.0.0.1/*","https://test-yun.youliao.com/*","https://test-demo.yun.youliao.com/*","https://test-demo.crm.youliao.com/*"],
       "js": ["js/jquery-3.5.1.min.js", "js/contentScripts.js", "js/js.cookie.js"]
     }
   ],
