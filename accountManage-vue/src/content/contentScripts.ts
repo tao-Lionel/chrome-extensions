@@ -1,6 +1,8 @@
+import Cookies from "js-cookie";
+
 (async function () {
   console.log("--------我自己登陆------");
-  async function sendSms(val) {
+  async function sendSms(val = null) {
     var url = "/gateway/main/sys/sms/sendSms";
     var options = {
       method: "POST",
@@ -20,7 +22,7 @@
     }
   }
 
-  async function login(val) {
+  async function login(val = null) {
     var url = "/gateway/main/uc/sso/loginFirstStep";
     var options = {
       method: "POST",
@@ -65,9 +67,7 @@
 
   chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     console.log(request);
-    // if (window.location.pathname === '/login') {
     await sendSms(request.phone);
     login(request.phone);
-    // }
   });
 });
