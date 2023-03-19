@@ -16,6 +16,6 @@
   ],
   "action": {
     "default_title": "打开配置",
-    "default_popup": "popup/index.html"
+    "default_popup": "index.html"
   }
 }
