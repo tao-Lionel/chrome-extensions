@@ -70,4 +70,4 @@ import Cookies from "js-cookie";
     await sendSms(request.phone);
     login(request.phone);
   });
-});
+})();

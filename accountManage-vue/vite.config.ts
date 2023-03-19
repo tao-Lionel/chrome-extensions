@@ -11,12 +11,15 @@ export default defineConfig({
     outDir: "dist",
     rollupOptions: {
       input: {
-        popup: "src/popup/main.ts",
+        contentScript: "src/contentScript/index.ts",
+        popup: "src/popup/index.ts",
       },
       output: {
-        entryFileNames: "[name]/main.js",
+        assetFileNames: "[name].[ext]",
+        entryFileNames: "[name]/index.js",
         extend: true,
-        format: "iife",
+        format: "es",
+        // inlineDynamicImports: false,
       },
     },
   },
