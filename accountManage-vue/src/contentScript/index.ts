@@ -40,7 +40,9 @@ import Cookies from "js-cookie";
     try {
       let res = await fetch(url, options);
       let data = await res.json();
-      const cookieParams = { domain: window.location.hostname, secure: false };
+      const shareTokenHost = ".youliao.com";
+      const DOMAIN = window.location.hostname.includes(shareTokenHost) ? shareTokenHost : window.location.hostname;
+      const cookieParams = { domain: DOMAIN, secure: false };
       Cookies.set("xhs_token", data.data.tokenData.token, cookieParams);
       Cookies.set("xhs_refresh_token", data.data.tokenData.refreshToken, cookieParams);
 
