@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { ref } from "vue";
+
 const phoneStr = import.meta.env.VITE_PHONE;
 const phoneArr = phoneStr.split(",");
 console.log(phoneArr);
+
+const activeKey = ref("1");
 
 const clickAccount = async (phone: number) => {
   console.log(phone);
@@ -20,7 +24,14 @@ const getCurrentTab = async () => {
 
 <template>
   <div class="flex-col content">
-    <button v-for="(item, index) in phoneArr" :key="index" class="btn mb-10 button1" @click="clickAccount(item)">{{ item }}</button>
+    <!-- <button v-for="(item, index) in phoneArr" :key="index" class="btn mb-10 button1" @click="clickAccount(item)">{{ item }}</button> -->
+
+    <a-tabs v-model:activeKey="activeKey">
+      <a-tab-pane key="1" tab="账号">
+        <a-button v-for="(item, index) in phoneArr" :key="index" class="" @click="clickAccount(item)">{{ item }}</a-button>
+      </a-tab-pane>
+      <a-tab-pane key="2" tab="账号列表"> </a-tab-pane>
+    </a-tabs>
   </div>
 </template>
 
