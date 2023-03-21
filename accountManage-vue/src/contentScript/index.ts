@@ -1,7 +1,6 @@
 import Cookies from "js-cookie";
 
 (async function () {
-  console.log("--------我自己登陆------");
   async function sendSms(val = null) {
     var url = "/gateway/main/sys/sms/sendSms";
     var options = {
