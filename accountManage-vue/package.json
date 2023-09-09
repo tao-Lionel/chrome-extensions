@@ -2,15 +2,16 @@
   "name": "accountmanage-vue",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite build  --mode dev",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@types/chrome": "^0.0.224",
+    "ant-design-vue": "^3.2.15",
     "js-cookie": "^3.0.1",
+    "sass": "1.56.1",
     "vue": "^3.2.45"
   },
   "devDependencies": {

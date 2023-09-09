@@ -1,18 +1,17 @@
 import Cookies from "js-cookie";
 
 (async function () {
-  console.log("--------我自己登陆------");
   async function sendSms(val = null) {
     var url = "/gateway/main/sys/sms/sendSms";
     var options = {
       method: "POST",
       headers: {
-        "Content-type": "application/json",
+        "Content-type": "application/json"
       },
       body: JSON.stringify({
         mobile: val,
-        smsType: 3,
-      }),
+        smsType: 3
+      })
     };
     try {
       let res = await fetch(url, options);
@@ -27,20 +26,22 @@ import Cookies from "js-cookie";
     var options = {
       method: "POST",
       headers: {
-        "Content-type": "application/json",
+        "Content-type": "application/json"
       },
       body: JSON.stringify({
         app: 2,
         domain: "",
         platform: 1,
         username: val,
-        verifyCode: "1234",
-      }),
+        verifyCode: "1234"
+      })
     };
     try {
       let res = await fetch(url, options);
       let data = await res.json();
-      const cookieParams = { domain: window.location.hostname, secure: false };
+      const shareTokenHost = ".youliao.com";
+      const DOMAIN = window.location.hostname.includes(shareTokenHost) ? shareTokenHost : window.location.hostname;
+      const cookieParams = { domain: DOMAIN, secure: false };
       Cookies.set("xhs_token", data.data.tokenData.token, cookieParams);
       Cookies.set("xhs_refresh_token", data.data.tokenData.refreshToken, cookieParams);
 
@@ -48,13 +49,17 @@ import Cookies from "js-cookie";
         // 根据端口号跳页面
         let url = "/my/first/index";
         let { host, port } = window.location;
-        if (port === "3004" || host.includes("test-demo.yun.youliao.com")) {
+        if (
+          port === "3004" ||
+          host.includes("test-demo.yun.youliao.com") ||
+          host.includes("test2-demo.yun.youliao.com")
+        ) {
           url = "/work/index";
         } else if (host.includes("test-yun.youliao.com")) {
           url = "https://test-demo.yun.youliao.com/work/index";
         } else if (port === "3006") {
-          url = "/news/list";
-        } else if (host.includes("test-demo.crm.youliao.com")) {
+          url = "/flow/list";
+        } else if (host.includes("test-demo.crm.youliao.com") || host.includes("test2-demo.crm.youliao.com")) {
           url = "/my/first/index";
         }
 
