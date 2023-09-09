@@ -1,0 +1,15 @@
+{
+  "name": "修改字体",
+  "version": "1.0",
+  "manifest_version": 3,
+  "description": "修改掘金字体", // 插件描述
+  "icons": {
+
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://juejin.cn/*"],
+      "js": ["contentScripts.js"]
+    }
+  ]
+}
