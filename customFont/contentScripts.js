@@ -4,6 +4,6 @@ window.addEventListener('load', () => {
 
 
   arr.forEach(element => {
-    element.setAttribute('style', 'font-family: none !important;font-size: 14px !important;line-height: 22px !important');
+    element.setAttribute('style', 'font-family: Menlo,Consolas,Monaco,Liberation Mono,Lucida Console,monospace !important;font-size: 14px !important;line-height: 24px !important');
   });
 })
