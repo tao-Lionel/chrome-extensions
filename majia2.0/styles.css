@@ -1,0 +1,16 @@
+.account-button {
+  margin-right: 10px;
+  /* color: black;
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  background-color: transparent;
+  font-weight: normal; */
+}
+
+.account-button.selected {
+  color: red;
+  border: 1px solid red;
+  /* font-weight: bold; */
+}
