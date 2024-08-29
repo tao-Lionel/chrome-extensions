@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import "./styles.css"
 
-import { Button } from "antd"
+import { Button, Input } from "antd"
 
 // 获取当前tab标签
 async function getCurrentTab() {
@@ -34,6 +34,8 @@ function IndexPopup() {
   const [tab, setTab] = useState({})
   const [currentAccount, setCurrentAccount] = useState("")
   const [msg, setMessage] = useState("")
+  const [name, setName] = useState("")
+  const [showInput, setShowInput] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,6 +55,11 @@ function IndexPopup() {
       setAccountList(storageData.list)
       setCurrentAccount(storageData.currentAccount)
       setMessage(storageData.message)
+      console.log("22222")
+      setName(
+        storageData.list.find((item) => item.id === storageData.currentAccount)
+          ?.name || ""
+      )
     }
     fetchData()
   }, [])
@@ -71,21 +78,60 @@ function IndexPopup() {
     setAccountList(res.list)
     setCurrentAccount(res.currentAccount)
     setMessage(res.message)
+    console.log("11111")
+    setName(res.list.find((item) => item.id === res.currentAccount)?.name || "")
   }
 
   function AccountButton({ list }) {
-    if (list.length === 0) {
-      return <span>当前页面没有保存的账号</span>
-    }
-    return list.map((item) => (
-      <Button
-        className={`account-button ${item.id === currentAccount ? "selected" : ""}`}
-        key={item.id}
-        onClick={(e) => handleClick("selectAccount", item)}>
-        {item.name}
-      </Button>
-    ))
+    return list.length === 0 ? (
+      <span>当前页面没有保存的账号</span>
+    ) : (
+      list.map((item) => (
+        <Button
+          className={`account-button ${item.id === currentAccount ? "selected" : ""}`}
+          key={item.id}
+          onClick={() => handleClick("selectAccount", item)}>
+          {item.name}
+        </Button>
+      ))
+    )
   }
+
+  function renameAccount() {
+    setShowInput(true)
+  }
+
+  function OperateBtn({ list }) {
+    const saveBtn = (
+      <Button onClick={(e) => handleClick("saveAccount")}>保存当前账号</Button>
+    )
+    if (list.length > 0) {
+      return (
+        <div>
+          {saveBtn}
+          <Button onClick={(e) => handleClick("delAccount")}>
+            删除当前账号
+          </Button>
+          <Button onClick={(e) => renameAccount()}>重命名</Button>
+        </div>
+      )
+    } else {
+      return <div>{saveBtn}</div>
+    }
+  }
+
+  function onPressEnter(e) {
+    setShowInput(false)
+    console.log(e.target.value)
+    handleClick("renameAccount", { id: currentAccount, name: e.target.value })
+  }
+
+  const handleChange = (e) => {
+    console.log("33333")
+    setName(e.target.value)
+  }
+
+  const inputRef = useRef(null)
 
   return (
     <div
@@ -101,11 +147,16 @@ function IndexPopup() {
         <div style={{ marginBottom: 10 }}>
           <AccountButton list={accountList} />
         </div>
-        <Button onClick={(e) => handleClick("saveAccount")}>
-          保存当前账号
-        </Button>
-        <Button onClick={(e) => handleClick("delAccount")}>删除当前账号</Button>
-        <Button onClick={(e) => handleClick("renameAccount")}>重命名</Button>
+        <OperateBtn list={accountList}></OperateBtn>
+        {showInput && (
+          <Input
+            ref={inputRef}
+            placeholder="重命名保存的账号"
+            value={name}
+            onChange={handleChange}
+            onPressEnter={onPressEnter}
+          />
+        )}
       </div>
     </div>
   )

@@ -120,6 +120,17 @@ const api = {
     await setStorage(domain, storageData)
     // await removeStorage(domain)
     return storageData
+  },
+  renameAccount: async function (params) {
+    const domain = params.domain
+    const storageData = await getStorage(domain)
+    storageData.list.forEach((item) => {
+      if (item.id === params.item.id) {
+        item.name = params.item.name
+      }
+    })
+    await setStorage(domain, storageData)
+    return storageData
   }
 }
 
