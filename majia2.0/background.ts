@@ -116,7 +116,7 @@ const api = {
     const domain = params.domain
     const storageData = await getStorage(domain)
     if (storageData.currentAccount) {
-      let list = storageData.list
+      const list = storageData.list
       let delItem = list.splice(
         list.findIndex((item) => item.id === storageData.currentAccount),
         1
@@ -127,11 +127,16 @@ const api = {
         await removeAllCookiesByDomain(cookies[i])
       }
     } else {
-      storageData.message = "当前没有登录的账号"
+      // storageData.message = "当前没有登录的账号"
     }
 
     storageData.currentAccount = ""
-    await setStorage(domain, storageData)
+    console.log("storageData.list", storageData.list)
+    if (storageData.list.length === 0) {
+      await removeStorage(domain)
+    } else {
+      await setStorage(domain, storageData)
+    }
 
     reloadTab(params.tab.id)
     return storageData

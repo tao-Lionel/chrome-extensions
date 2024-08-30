@@ -82,7 +82,10 @@ function IndexPopup() {
 
   function AccountButton({ list }) {
     return list.length === 0 ? (
-      <span>当前页面没有保存的账号</span>
+      <div>
+        <div style={{ fontSize: 16 }}>尚无保存的账号</div>
+        <div style={{ color: "#596064", fontSize: 12 }}>点击[保存]添加账号</div>
+      </div>
     ) : (
       list.map((item) => (
         <Button
@@ -101,7 +104,10 @@ function IndexPopup() {
 
   function OperateBtn({ list }) {
     const saveBtn = (
-      <Button onClick={(e) => handleClick("saveAccount")} className={"mr-10"}>
+      <Button
+        onClick={(e) => handleClick("saveAccount")}
+        className={"mr-10"}
+        size="small">
         保存
       </Button>
     )
@@ -109,10 +115,16 @@ function IndexPopup() {
       return (
         <div>
           {saveBtn}
-          <Button onClick={(e) => renameAccount()} className={"mr-10"}>
+          <Button
+            onClick={(e) => renameAccount()}
+            className={"mr-10"}
+            size="small">
             重命名
           </Button>
-          <Button onClick={(e) => handleClick("delAccount")} danger>
+          <Button
+            onClick={(e) => handleClick("delAccount")}
+            danger
+            size="small">
             删除
           </Button>
         </div>
@@ -131,32 +143,28 @@ function IndexPopup() {
     setName(e.target.value)
   }
 
-  const inputRef = useRef(null)
-
   return (
-    <div
-      style={{
-        width: 300,
-        padding: 10,
-        display: "flex",
-        flexDirection: "column"
-      }}>
-      <span>{msg}</span>
-      <h3>当前网站账号</h3>
-      <div>
-        <div style={{ marginBottom: 10 }}>
-          <AccountButton list={accountList} />
+    <div className={"main"}>
+      <div className={"header"}>
+        <span>马甲</span>
+      </div>
+      <div className={"wrapper"}>
+        <span>{msg}</span>
+        <div className={"title"}> {domain}</div>
+        <div>
+          <div style={{ marginBottom: 10 }}>
+            <AccountButton list={accountList} />
+          </div>
+          <OperateBtn list={accountList}></OperateBtn>
+          {showInput && (
+            <Input
+              placeholder="重命名保存的账号"
+              value={name}
+              onChange={handleChange}
+              onPressEnter={onPressEnter}
+            />
+          )}
         </div>
-        <OperateBtn list={accountList}></OperateBtn>
-        {showInput && (
-          <Input
-            ref={inputRef}
-            placeholder="重命名保存的账号"
-            value={name}
-            onChange={handleChange}
-            onPressEnter={onPressEnter}
-          />
-        )}
       </div>
     </div>
   )
