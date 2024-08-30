@@ -17,7 +17,7 @@ function getDomain(url) {
   if (match) {
     let domain = match[1]
     // 去掉顶级域名部分
-    domain = domain.replace(/\.[a-zA-Z]{2,}$/, "")
+    // domain = domain.replace(/\.[a-zA-Z]{2,}$/, "")
     return domain
   }
   return null
@@ -55,7 +55,6 @@ function IndexPopup() {
       setAccountList(storageData.list)
       setCurrentAccount(storageData.currentAccount)
       setMessage(storageData.message)
-      console.log("22222")
       setName(
         storageData.list.find((item) => item.id === storageData.currentAccount)
           ?.name || ""
@@ -78,7 +77,6 @@ function IndexPopup() {
     setAccountList(res.list)
     setCurrentAccount(res.currentAccount)
     setMessage(res.message)
-    console.log("11111")
     setName(res.list.find((item) => item.id === res.currentAccount)?.name || "")
   }
 
@@ -103,16 +101,20 @@ function IndexPopup() {
 
   function OperateBtn({ list }) {
     const saveBtn = (
-      <Button onClick={(e) => handleClick("saveAccount")}>保存当前账号</Button>
+      <Button onClick={(e) => handleClick("saveAccount")} className={"mr-10"}>
+        保存
+      </Button>
     )
     if (list.length > 0) {
       return (
         <div>
           {saveBtn}
-          <Button onClick={(e) => handleClick("delAccount")}>
-            删除当前账号
+          <Button onClick={(e) => renameAccount()} className={"mr-10"}>
+            重命名
           </Button>
-          <Button onClick={(e) => renameAccount()}>重命名</Button>
+          <Button onClick={(e) => handleClick("delAccount")} danger>
+            删除
+          </Button>
         </div>
       )
     } else {
@@ -122,12 +124,10 @@ function IndexPopup() {
 
   function onPressEnter(e) {
     setShowInput(false)
-    console.log(e.target.value)
     handleClick("renameAccount", { id: currentAccount, name: e.target.value })
   }
 
   const handleChange = (e) => {
-    console.log("33333")
     setName(e.target.value)
   }
 

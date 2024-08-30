@@ -65,6 +65,7 @@ async function removeStorage(key) {
 const api = {
   saveAccount: async function (params) {
     const domain = params.domain
+    console.log("domain", domain)
 
     let storageData = await getStorage(domain)
     if (!storageData) {
@@ -76,8 +77,11 @@ const api = {
     }
 
     const cookies = await getAllCookiesByDomain(domain)
+    console.log("cookies======", cookies)
     if (cookies && cookies.length > 0) {
-      await removeAllCookiesByDomain(cookies[0])
+      for (let i = 0; i < cookies.length; i++) {
+        await removeAllCookiesByDomain(cookies[i])
+      }
     } else {
       return storageData
     }
@@ -95,11 +99,16 @@ const api = {
     return storageData
   },
   selectAccount: async function (params) {
+    console.log("selectAccount=======", params)
+
     const domain = params.domain
     const storageData = await getStorage(domain)
     storageData.currentAccount = params.item.id
     await setStorage(domain, storageData)
-    setAllCookiesByDomain(params.item.cookies[0])
+    const cookies = params.item.cookies
+    for (let i = 0; i < cookies.length; i++) {
+      await setAllCookiesByDomain(cookies[i])
+    }
     reloadTab(params.tab.id)
     return storageData
   },
@@ -108,17 +117,23 @@ const api = {
     const storageData = await getStorage(domain)
     if (storageData.currentAccount) {
       let list = storageData.list
-      list.splice(
+      let delItem = list.splice(
         list.findIndex((item) => item.id === storageData.currentAccount),
         1
       )
+      console.log("delItem=====", delItem)
+      const cookies = delItem[0].cookies
+      for (let i = 0; i < cookies.length; i++) {
+        await removeAllCookiesByDomain(cookies[i])
+      }
     } else {
       storageData.message = "当前没有登录的账号"
     }
 
     storageData.currentAccount = ""
     await setStorage(domain, storageData)
-    // await removeStorage(domain)
+
+    reloadTab(params.tab.id)
     return storageData
   },
   renameAccount: async function (params) {
@@ -135,8 +150,6 @@ const api = {
 }
 
 chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
-  console.log("msg==d===", msg)
-
   let fun = api[msg.action]
   if (fun) {
     const data = await fun(msg.message)
