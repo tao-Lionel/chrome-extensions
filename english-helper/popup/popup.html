@@ -75,6 +75,23 @@
       />
     </div>
 
+    <div class="form-group">
+      <label>域名白名单 (每行一个，留空则匹配所有)(只控制启用高亮功能)</label>
+      <textarea
+        id="whitelist"
+        rows="4"
+        placeholder="example.com&#10;github.com"
+        style="
+          width: 100%;
+          padding: 6px;
+          box-sizing: border-box;
+          border: 1px solid #e2e8f0;
+          border-radius: 4px;
+          font-family: inherit;
+        "
+      ></textarea>
+    </div>
+
     <button id="saveBtn">保存配置</button>
     <div id="status" class="status"></div>
 

@@ -138,14 +138,30 @@ class Highlighter {
     this.processChunk = this.processChunk.bind(this);
   }
 
-  init() {
+  async init() {
     // 初始加载
-    chrome.storage.local.get(["userSettings", "vocabulary"], (result) => {
-      if (result.userSettings?.autoHighlight) {
-        this.updateVocabulary(result.vocabulary);
-        this.scanAndHighlight();
+    const result = await chrome.storage.local.get(["userSettings", "vocabulary"]);
+
+    // Check whitelist
+    const settings = result.userSettings || {};
+    const whitelist = settings.whitelistedDomains || [];
+    
+    if (whitelist.length > 0) {
+      const hostname = window.location.hostname;
+      const isAllowed = whitelist.some(domain => 
+        hostname === domain || hostname.endsWith("." + domain)
+      );
+      
+      if (!isAllowed) {
+        console.log("English Helper: Domain not whitelisted, skipping initialization.");
+        return;
       }
-    });
+    }
+
+    if (settings.autoHighlight) {
+      this.updateVocabulary(result.vocabulary);
+      this.scanAndHighlight();
+    }
 
     // 监听变化
     chrome.storage.onChanged.addListener(this.onStorageChange);

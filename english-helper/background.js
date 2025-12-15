@@ -12,6 +12,16 @@ chrome.runtime.onInstalled.addListener(() => {
           githubGistId: "",
           minWordLength: 3,
           autoHighlight: true,
+          whitelistedDomains: [], // Empty means active on all domains (or inactive? User said "Only in whitelist... plugin effective". Usually empty whitelist = all allowed OR nothing allowed. Given the phrasing "Only in this whitelist", it implies if list exists, strict mode. If list is empty, default to all? 
+          // Re-reading user: "I need a whitelist setting, ONLY in this whitelist, the plugin is effective."
+          // This implies if the feature is enabled, it defaults to restricted mode.
+          // However, for backward compatibility, if the list is empty/undefined, it should probably work everywhere or nowhere?
+          // Let's assume: If the list is empty, it works everywhere (default behavior). If list has items, it restricts.
+          // Wait, user said "Only in this whitelist". If I set it to empty array, and logic is "if whitelist not empty, check it", then empty whitelist = works everywhere.
+          // This is the most user-friendly approach.
+          // But if user WANTS to restrict to 0 domains (disable), they can just disable the extension.
+          // So: Empty list = Active everywhere (default). Populated list = Active only on those domains.
+          // Actually, let's look at the code structure.
         },
       });
     }
