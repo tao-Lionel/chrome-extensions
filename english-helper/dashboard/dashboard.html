@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>English AI Helper - 单词本</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 30px;
+        "
+      >
+        <h1>English AI Helper 单词本</h1>
+        <div class="actions">
+          <button id="refreshBtn" class="btn">刷新 / 同步</button>
+          <button id="exportBtn" class="btn secondary">导出 JSON</button>
+          <input
+            type="file"
+            id="importFile"
+            accept=".json"
+            style="display: none"
+          />
+          <button id="importBtn" class="btn secondary">导入 JSON</button>
+        </div>
+      </header>
+
+      <div class="stats-bar" style="margin-bottom: 20px; color: #64748b">
+        共记录 <strong id="totalCount">0</strong> 个单词
+      </div>
+
+      <div id="wordGrid" class="word-grid">
+        <!-- Cards injected by JS -->
+      </div>
+    </div>
+    <script src="dashboard.js"></script>
+  </body>
+</html>
