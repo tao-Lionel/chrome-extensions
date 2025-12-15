@@ -1,6 +1,11 @@
 // 导入库文件 (MV3 Service Worker 方式)
 importScripts("lib/deepSeek.js", "lib/github.js");
 
+// Configure Side Panel behavior
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
+
 // 初始化默认设置
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(["userSettings", "vocabulary"], (result) => {
