@@ -53,7 +53,13 @@ async function captureAndProcess() {
       `错误: ${response.error}`
     );
   } else {
-    renderResult(response.data, rect.left, rect.bottom + window.scrollY);
+    renderResult(
+      response.data,
+      rect.left,
+      rect.bottom + window.scrollY,
+      text,
+      contextSentence
+    );
   }
 }
 
@@ -98,8 +104,14 @@ function showFloatingCard(x, y, content, isLoading = false) {
   return card;
 }
 
-function renderResult(data, x, y) {
+function renderResult(data, x, y, originalText = null, contextSentence = null) {
   const isMastered = data.status === "mastered";
+
+  // Format translation: replace | with <br> and maybe bullet points
+  const formattedTranslation = data.translation
+    .split("|")
+    .map((t) => `<div>• ${t.trim()}</div>`)
+    .join("");
 
   const html = `
     <div class="eah-card-header">
@@ -114,9 +126,12 @@ function renderResult(data, x, y) {
          ${isMastered ? "✅ 已掌握" : "⭕ 标记掌握"}
       </button>
     </div>
-    <div class="eah-translation">${data.translation}</div>
+    <div class="eah-translation">${formattedTranslation}</div>
     <div class="eah-context-note">
       已记录: ${data.count} 次 | 上下文已保存
+      <span class="eah-reanalyze-btn" title="语境不符？强制AI重新分析" style="cursor: pointer; color: #2196F3; margin-left: 10px; font-size: 0.9em; text-decoration: underline;">
+        语境不符?
+      </span>
     </div>
   `;
 
@@ -139,6 +154,35 @@ function renderResult(data, x, y) {
       masterBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
         await toggleMastered(data.lemma, masterBtn);
+      });
+    }
+
+    // Re-analyze
+    const reanalyzeBtn = card.querySelector(".eah-reanalyze-btn");
+    if (reanalyzeBtn) {
+      reanalyzeBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        showFloatingCard(x, y, "AI 正在重新分析...", true);
+
+        const response = await chrome.runtime.sendMessage({
+          action: "processWord",
+          text: originalText || data.lemma,
+          contextSentence: contextSentence || "",
+          url: window.location.href,
+          forceRefresh: true,
+        });
+
+        if (response.error) {
+          showFloatingCard(x, y, `错误: ${response.error}`);
+        } else {
+          renderResult(
+            response.data,
+            x,
+            y,
+            originalText || data.lemma,
+            contextSentence
+          );
+        }
       });
     }
   }
@@ -467,7 +511,25 @@ class Highlighter {
         const lemmaData = this.variantToLemma[word.toLowerCase()];
         if (lemmaData) {
           const rect = span.getBoundingClientRect();
-          renderResult(lemmaData, rect.left, rect.bottom + window.scrollY);
+
+          // Get context
+          let contextSentence = word;
+          if (span.parentElement) {
+            const fullText = span.parentElement.innerText;
+            const sentences = fullText.split(/[.!?。！？]/);
+            const found = sentences.find((s) =>
+              s.toLowerCase().includes(word.toLowerCase())
+            );
+            if (found) contextSentence = found.trim();
+          }
+
+          renderResult(
+            lemmaData,
+            rect.left,
+            rect.bottom + window.scrollY,
+            word,
+            contextSentence
+          );
         }
       });
 

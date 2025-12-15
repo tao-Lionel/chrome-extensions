@@ -17,7 +17,7 @@ chrome.runtime.onInstalled.addListener(() => {
           githubGistId: "",
           minWordLength: 3,
           autoHighlight: true,
-          whitelistedDomains: [], // Empty means active on all domains (or inactive? User said "Only in whitelist... plugin effective". Usually empty whitelist = all allowed OR nothing allowed. Given the phrasing "Only in this whitelist", it implies if list exists, strict mode. If list is empty, default to all? 
+          whitelistedDomains: [], // Empty means active on all domains (or inactive? User said "Only in whitelist... plugin effective". Usually empty whitelist = all allowed OR nothing allowed. Given the phrasing "Only in this whitelist", it implies if list exists, strict mode. If list is empty, default to all?
           // Re-reading user: "I need a whitelist setting, ONLY in this whitelist, the plugin is effective."
           // This implies if the feature is enabled, it defaults to restricted mode.
           // However, for backward compatibility, if the list is empty/undefined, it should probably work everywhere or nowhere?
@@ -63,7 +63,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-async function handleWordProcessing({ text, contextSentence, url }) {
+async function handleWordProcessing({
+  text,
+  contextSentence,
+  url,
+  forceRefresh = false,
+}) {
   const data = await chrome.storage.local.get(["vocabulary", "userSettings"]);
   const vocab = data.vocabulary || {};
   const settings = data.userSettings;
@@ -103,7 +108,7 @@ async function handleWordProcessing({ text, contextSentence, url }) {
 
   let resultData = null;
 
-  if (foundKey) {
+  if (foundKey && !forceRefresh) {
     // Case A: 命中缓存 (Token Efficient)
     const entry = vocab[foundKey];
     entry.count += 1;
@@ -127,7 +132,7 @@ async function handleWordProcessing({ text, contextSentence, url }) {
     await chrome.storage.local.set({ vocabulary: vocab });
     console.log(`[Cache Hit] Updated entry for ${foundKey}`);
   } else {
-    // Case B: 未命中，调用 DeepSeek (Morphology-Aware)
+    // Case B: 未命中或强制刷新，调用 DeepSeek (Morphology-Aware)
     try {
       const aiResult = await self.DeepSeekAPI.analyzeWord(
         rawWord,
@@ -138,6 +143,7 @@ async function handleWordProcessing({ text, contextSentence, url }) {
       const lemma = aiResult.lemma.toLowerCase();
 
       // 再次检查 AI 返回的 Lemma 是否已存在 (防止 "running" -> "run", 但 "run" 已存在的情况)
+      // 如果 forceRefresh 为 true，我们也要检查是否存在，以便追加释义
       if (vocab[lemma]) {
         // 合并到现有 Lemma
         const entry = vocab[lemma];
@@ -146,6 +152,30 @@ async function handleWordProcessing({ text, contextSentence, url }) {
         entry.contexts.push(newContext);
         if (!entry.variants.includes(rawWord.toLowerCase()))
           entry.variants.push(rawWord.toLowerCase());
+
+        // Smart Append: 检查新释义是否已包含
+        const oldTranslation = entry.translation || "";
+        const newTranslation = aiResult.translation || "";
+
+        // 简单查重：如果旧释义不包含新释义的关键部分 (这里做简单字符串包含检查可能不够精确，但作为 MVP 足够)
+        // 更好的方式可能是 split(' | ') 然后 check set
+        const existingMeanings = oldTranslation.split(/\s*\|\s*/);
+        const newMeanings = newTranslation.split(/\s*\|\s*/);
+
+        const uniqueNewMeanings = newMeanings.filter(
+          (m) => !existingMeanings.includes(m)
+        );
+
+        if (uniqueNewMeanings.length > 0) {
+          entry.translation =
+            oldTranslation + " | " + uniqueNewMeanings.join(" | ");
+        }
+
+        // 如果是强制刷新，可能还需要更新音标等信息，这里暂且只追加释义
+        if (!entry.phonetic && aiResult.phonetic) {
+          entry.phonetic = aiResult.phonetic;
+        }
+
         vocab[lemma] = entry;
         resultData = entry;
       } else {
