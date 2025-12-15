@@ -99,6 +99,70 @@ h3 {
   display: none; /* Hidden by default */
 }
 
+/* Table View Styles */
+.word-table-container {
+  margin-top: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.data-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.9em;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.context-row {
+  background-color: #f8fafc;
+  display: none;
+}
+
+.context-row.expanded {
+  display: table-row;
+}
+
+.context-content {
+  padding: 16px;
+  color: #475569;
+  font-size: 0.9em;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 0.9em;
+}
+
+.action-btn:hover {
+  text-decoration: underline;
+}
+
 .word-card.expanded .contexts-list {
   display: block;
 }

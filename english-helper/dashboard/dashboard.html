@@ -17,7 +17,11 @@
       >
         <h1>English AI Helper 单词本</h1>
         <div class="actions">
-          <button id="refreshBtn" class="btn">刷新 / 同步</button>
+          <div class="view-toggle" style="margin-right: 15px; display: inline-flex; gap: 5px;">
+            <button id="viewCardBtn" class="btn">卡片视图</button>
+            <button id="viewTableBtn" class="btn secondary">表格视图</button>
+          </div>
+          <button id="refreshBtn" class="btn secondary">刷新 / 同步</button>
           <button id="exportBtn" class="btn secondary">导出 JSON</button>
           <input
             type="file"
@@ -35,6 +39,24 @@
 
       <div id="wordGrid" class="word-grid">
         <!-- Cards injected by JS -->
+      </div>
+      
+      <div id="wordTable" class="word-table-container" style="display: none;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>单词</th>
+              <th>音标</th>
+              <th>翻译</th>
+              <th>复习次数</th>
+              <th>上次复习</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="wordTableBody">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
       </div>
     </div>
     <script src="dashboard.js"></script>

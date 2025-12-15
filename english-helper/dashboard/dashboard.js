@@ -3,11 +3,24 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEvents();
 });
 
+let allWords = [];
+let currentView = "card";
+
 function setupEvents() {
   document.getElementById("refreshBtn").addEventListener("click", async () => {
     // 触发后台强制同步
     await chrome.runtime.sendMessage({ action: "forceSync" });
     loadVocabulary();
+  });
+
+  document.getElementById("viewCardBtn").addEventListener("click", () => {
+    currentView = "card";
+    render();
+  });
+
+  document.getElementById("viewTableBtn").addEventListener("click", () => {
+    currentView = "table";
+    render();
   });
 
   document.getElementById("exportBtn").addEventListener("click", exportData);
@@ -21,19 +34,45 @@ function setupEvents() {
 
 async function loadVocabulary() {
   const { vocabulary } = await chrome.storage.local.get("vocabulary");
-  const grid = document.getElementById("wordGrid");
   const totalCountEl = document.getElementById("totalCount");
 
-  grid.innerHTML = "";
   if (!vocabulary) return;
 
-  const words = Object.values(vocabulary);
-  totalCountEl.innerText = words.length;
+  allWords = Object.values(vocabulary);
+  totalCountEl.innerText = allWords.length;
 
   // 排序: 默认按 count 降序
-  words.sort((a, b) => b.count - a.count);
+  allWords.sort((a, b) => b.count - a.count);
 
-  words.forEach((word) => {
+  render();
+}
+
+function render() {
+  const grid = document.getElementById("wordGrid");
+  const table = document.getElementById("wordTable");
+  const btnCard = document.getElementById("viewCardBtn");
+  const btnTable = document.getElementById("viewTableBtn");
+
+  if (currentView === "card") {
+    grid.style.display = "grid";
+    table.style.display = "none";
+    btnCard.classList.remove("secondary");
+    btnTable.classList.add("secondary");
+    renderCards();
+  } else {
+    grid.style.display = "none";
+    table.style.display = "block";
+    btnCard.classList.add("secondary");
+    btnTable.classList.remove("secondary");
+    renderTable();
+  }
+}
+
+function renderCards() {
+  const grid = document.getElementById("wordGrid");
+  grid.innerHTML = "";
+
+  allWords.forEach((word) => {
     const card = document.createElement("div");
     card.className = `word-card ${getHeatmapClass(word.count)}`;
 
@@ -50,18 +89,7 @@ async function loadVocabulary() {
         上次复习: ${new Date(word.lastReview).toLocaleDateString()}
       </div>
       <div class="contexts-list">
-        ${word.contexts
-          .map(
-            (c) => `
-          <div class="context-item">
-            "${c.sentence.replace(
-              new RegExp(word.variants.join("|"), "gi"),
-              (match) => `<b>${match}</b>`
-            )}"
-          </div>
-        `
-          )
-          .join("")}
+        ${renderContexts(word)}
       </div>
     `;
 
@@ -72,6 +100,68 @@ async function loadVocabulary() {
 
     grid.appendChild(card);
   });
+}
+
+function renderTable() {
+  const tbody = document.getElementById("wordTableBody");
+  tbody.innerHTML = "";
+
+  allWords.forEach((word) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="font-weight: bold; color: #2563eb;">${word.lemma}</td>
+      <td>${word.phonetic || ""}</td>
+      <td>${word.translation}</td>
+      <td>
+        <span class="card-count" style="display:inline-block">${
+          word.count
+        }</span>
+      </td>
+      <td style="color: #64748b; font-size: 0.9em;">${new Date(
+        word.lastReview
+      ).toLocaleDateString()}</td>
+      <td>
+        <button class="action-btn toggle-context">查看语境</button>
+      </td>
+    `;
+
+    // 语境行
+    const contextRow = document.createElement("tr");
+    contextRow.className = "context-row";
+    contextRow.innerHTML = `
+      <td colspan="6" class="context-content">
+        ${renderContexts(word)}
+      </td>
+    `;
+
+    // 绑定事件
+    tr.querySelector(".toggle-context").addEventListener("click", (e) => {
+      e.stopPropagation();
+      contextRow.classList.toggle("expanded");
+      const btn = e.target;
+      btn.innerText = contextRow.classList.contains("expanded")
+        ? "收起语境"
+        : "查看语境";
+    });
+
+    tbody.appendChild(tr);
+    tbody.appendChild(contextRow);
+  });
+}
+
+function renderContexts(word) {
+  return word.contexts
+    .map(
+      (c) => `
+    <div class="context-item" style="margin-bottom: 4px;">
+      "${c.sentence.replace(
+        new RegExp(word.variants.join("|"), "gi"),
+        (match) => `<b>${match}</b>`
+      )}"
+    </div>
+  `
+    )
+    .join("");
 }
 
 function getHeatmapClass(count) {
