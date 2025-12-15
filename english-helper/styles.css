@@ -21,24 +21,80 @@
   font-style: italic;
 }
 
+/* Header Layout */
+.eah-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.eah-word-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .eah-word {
   font-weight: bold;
   font-size: 16px;
   color: #2563eb;
-  margin-bottom: 4px;
-  display: block;
+  margin-bottom: 0; /* Reset margin since we use flex */
 }
 
 .eah-phonetic {
   color: #64748b;
   font-size: 12px;
-  margin-left: 8px;
   font-weight: normal;
+}
+
+/* Action Buttons */
+.eah-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.eah-icon-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.eah-master-btn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.eah-master-btn:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.eah-master-btn.mastered {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border-color: #bbf7d0;
 }
 
 .eah-translation {
   margin-bottom: 8px;
   display: block;
+  line-height: 1.4;
 }
 
 .eah-context-note {
@@ -61,5 +117,3 @@
 .eah-highlight:hover {
   background-color: #fde047; /* Yellow-300 */
 }
-
-

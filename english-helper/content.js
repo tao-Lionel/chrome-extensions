@@ -62,7 +62,10 @@ async function captureAndProcess() {
 let currentCard = null;
 
 function showFloatingCard(x, y, content, isLoading = false) {
-  if (currentCard) document.body.removeChild(currentCard);
+  if (currentCard) {
+    if (currentCard.parentNode) document.body.removeChild(currentCard);
+    currentCard = null;
+  }
 
   const card = document.createElement("div");
   card.id = "eah-floating-card";
@@ -81,7 +84,7 @@ function showFloatingCard(x, y, content, isLoading = false) {
   // 点击外部关闭
   const closeHandler = (e) => {
     if (!card.contains(e.target)) {
-      document.body.removeChild(card);
+      if (card.parentNode) document.body.removeChild(card);
       currentCard = null;
       document.removeEventListener("click", closeHandler);
     }
@@ -91,20 +94,83 @@ function showFloatingCard(x, y, content, isLoading = false) {
   setTimeout(() => {
     document.addEventListener("click", closeHandler);
   }, 100);
+
+  return card;
 }
 
 function renderResult(data, x, y) {
+  const isMastered = data.status === "mastered";
+
   const html = `
-    <div>
-      <span class="eah-word">${data.lemma}</span>
-      <span class="eah-phonetic">${data.phonetic || ""}</span>
+    <div class="eah-card-header">
+      <div class="eah-word-group">
+        <span class="eah-word">${data.lemma}</span>
+        <span class="eah-phonetic">${data.phonetic || ""}</span>
+        <button class="eah-icon-btn eah-tts-btn" title="朗读">🔊</button>
+      </div>
+      <button class="eah-master-btn ${isMastered ? "mastered" : ""}" title="${
+    isMastered ? "标记为未掌握" : "标记为已掌握"
+  }">
+         ${isMastered ? "✅ 已掌握" : "⭕ 标记掌握"}
+      </button>
     </div>
     <div class="eah-translation">${data.translation}</div>
     <div class="eah-context-note">
       已记录: ${data.count} 次 | 上下文已保存
     </div>
   `;
-  showFloatingCard(x, y, html);
+
+  const card = showFloatingCard(x, y, html);
+
+  // Bind Events
+  if (card) {
+    // TTS
+    const ttsBtn = card.querySelector(".eah-tts-btn");
+    if (ttsBtn) {
+      ttsBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        playTTS(data.lemma);
+      });
+    }
+
+    // Mastered
+    const masterBtn = card.querySelector(".eah-master-btn");
+    if (masterBtn) {
+      masterBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await toggleMastered(data.lemma, masterBtn);
+      });
+    }
+  }
+}
+
+function playTTS(text) {
+  if ("speechSynthesis" in window) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    window.speechSynthesis.speak(utterance);
+  } else {
+    showToast("浏览器不支持 TTS");
+  }
+}
+
+async function toggleMastered(lemma, btnElement) {
+  const result = await chrome.storage.local.get(["vocabulary"]);
+  const vocab = result.vocabulary || {};
+
+  if (vocab[lemma]) {
+    const currentStatus = vocab[lemma].status || "learning";
+    const newStatus = currentStatus === "learning" ? "mastered" : "learning";
+
+    vocab[lemma].status = newStatus;
+    await chrome.storage.local.set({ vocabulary: vocab });
+
+    // Update UI immediately
+    const isMastered = newStatus === "mastered";
+    btnElement.classList.toggle("mastered", isMastered);
+    btnElement.innerHTML = isMastered ? "✅ 已掌握" : "⭕ 标记掌握";
+    btnElement.title = isMastered ? "标记为未掌握" : "标记为已掌握";
+  }
 }
 
 function showToast(msg) {
@@ -140,20 +206,25 @@ class Highlighter {
 
   async init() {
     // 初始加载
-    const result = await chrome.storage.local.get(["userSettings", "vocabulary"]);
+    const result = await chrome.storage.local.get([
+      "userSettings",
+      "vocabulary",
+    ]);
 
     // Check whitelist
     const settings = result.userSettings || {};
     const whitelist = settings.whitelistedDomains || [];
-    
+
     if (whitelist.length > 0) {
       const hostname = window.location.hostname;
-      const isAllowed = whitelist.some(domain => 
-        hostname === domain || hostname.endsWith("." + domain)
+      const isAllowed = whitelist.some(
+        (domain) => hostname === domain || hostname.endsWith("." + domain)
       );
-      
+
       if (!isAllowed) {
-        console.log("English Helper: Domain not whitelisted, skipping initialization.");
+        console.log(
+          "English Helper: Domain not whitelisted, skipping initialization."
+        );
         return;
       }
     }
@@ -193,6 +264,9 @@ class Highlighter {
 
     // 1. 提取所有变体并建立索引
     Object.values(vocabulary).forEach((entry) => {
+      // 过滤已掌握的单词
+      if (entry.status === "mastered") return;
+
       const list = entry.variants || [entry.lemma];
       list.forEach((v) => {
         const lower = v.toLowerCase();
@@ -219,6 +293,9 @@ class Highlighter {
   }
 
   scanAndHighlight() {
+    // 0. 清理无效高亮 (例如已掌握的单词)
+    this.cleanupHighlights();
+
     if (!this.regex) return;
 
     // 取消之前的处理任务
@@ -284,8 +361,6 @@ class Highlighter {
     );
 
     // 收集需要处理的节点
-    // 注意：这里只收集可能匹配的节点，避免后续处理无用节点
-    // 为了性能，我们可以先简单判断是否有匹配，再放入队列
     while (walker.nextNode()) {
       const node = walker.currentNode;
       if (node.nodeValue.trim()) {
@@ -307,6 +382,23 @@ class Highlighter {
         setTimeout(this.processChunk, 0);
       }
     }
+  }
+
+  cleanupHighlights() {
+    const highlights = document.querySelectorAll(".eah-highlight");
+    highlights.forEach((span) => {
+      const word = span.textContent.toLowerCase();
+      // 检查该单词是否仍在当前的 variantToLemma 中
+      // updateVocabulary 已被调用，variantToLemma 中只包含 learning 状态的单词
+      if (!this.variantToLemma[word]) {
+        const parent = span.parentNode;
+        if (parent) {
+          const text = document.createTextNode(span.textContent);
+          parent.replaceChild(text, span);
+          parent.normalize(); // 合并相邻文本节点
+        }
+      }
+    });
   }
 
   // 4. 时间分片 (Time Slicing)
