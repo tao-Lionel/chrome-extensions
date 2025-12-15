@@ -157,7 +157,7 @@ class Highlighter {
 
     // 防抖处理 (1000ms)
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
-    
+
     this.debounceTimer = setTimeout(() => {
       chrome.storage.local.get(["userSettings", "vocabulary"], (result) => {
         // 如果用户关闭了自动高亮，则不进行操作 (或者可以考虑清除高亮，这里暂且保留不操作)
@@ -180,9 +180,10 @@ class Highlighter {
       const list = entry.variants || [entry.lemma];
       list.forEach((v) => {
         const lower = v.toLowerCase();
-        if (lower.length > 1) { // 忽略单字母单词，避免误伤
-           words.add(lower);
-           this.variantToLemma[lower] = entry;
+        if (lower.length > 1) {
+          // 忽略单字母单词，避免误伤
+          words.add(lower);
+          this.variantToLemma[lower] = entry;
         }
       });
     });
@@ -216,22 +217,53 @@ class Highlighter {
         acceptNode: (node) => {
           // 黑名单过滤
           if (!node.parentElement) return NodeFilter.FILTER_REJECT;
-          
+
           const tag = node.parentElement.tagName;
           const forbiddenTags = [
-            "SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "INPUT", 
-            "CODE", "PRE", "SVG", "IMG"
+            "SCRIPT",
+            "STYLE",
+            "NOSCRIPT",
+            "TEXTAREA",
+            "INPUT",
+            "CODE",
+            "PRE",
+            "SVG",
+            "IMG",
+            "BUTTON",
+            "SELECT",
+            "OPTION",
+            "OPTGROUP",
+            "KBD",
+            "VAR",
+            "SAMP",
+            "IFRAME",
+            "FRAME",
+            "OBJECT",
+            "EMBED",
+            "VIDEO",
+            "AUDIO",
+            "CANVAS",
+            "MAP",
+            "AREA",
+            "METER",
+            "PROGRESS",
+            "HEAD",
+            "TITLE",
+            "META",
           ];
-          
+
           if (forbiddenTags.includes(tag)) return NodeFilter.FILTER_REJECT;
-          if (node.parentElement.isContentEditable) return NodeFilter.FILTER_REJECT;
-          
+          if (node.parentElement.isContentEditable)
+            return NodeFilter.FILTER_REJECT;
+
           // 跳过已高亮节点和插件UI
-          if (node.parentElement.classList.contains("eah-highlight")) return NodeFilter.FILTER_REJECT;
-          if (node.parentElement.closest("#eah-floating-card")) return NodeFilter.FILTER_REJECT;
+          if (node.parentElement.classList.contains("eah-highlight"))
+            return NodeFilter.FILTER_REJECT;
+          if (node.parentElement.closest("#eah-floating-card"))
+            return NodeFilter.FILTER_REJECT;
 
           return NodeFilter.FILTER_ACCEPT;
-        }
+        },
       }
     );
 
@@ -241,10 +273,10 @@ class Highlighter {
     while (walker.nextNode()) {
       const node = walker.currentNode;
       if (node.nodeValue.trim()) {
-        // 重置 lastIndex 
+        // 重置 lastIndex
         this.regex.lastIndex = 0;
         if (this.regex.test(node.nodeValue)) {
-            this.processingQueue.push(node);
+          this.processingQueue.push(node);
         }
       }
     }
@@ -267,14 +299,14 @@ class Highlighter {
 
     // 如果是 setTimeout 回退，deadline 可能不存在，模拟一个
     const deadlineTime = deadline ? deadline.timeRemaining() : 10;
-    
+
     // 只要有剩余时间且队列不为空，就继续处理
     while ((deadlineTime > 0 || !deadline) && this.processingQueue.length > 0) {
-       // 检查是否 deadline 已过期 (保留 1ms 缓冲)
-       if (deadline && deadline.timeRemaining() <= 1) break;
+      // 检查是否 deadline 已过期 (保留 1ms 缓冲)
+      if (deadline && deadline.timeRemaining() <= 1) break;
 
-       const nodesToProcess = this.processingQueue.splice(0, this.CHUNK_SIZE);
-       nodesToProcess.forEach(node => this.highlightNode(node));
+      const nodesToProcess = this.processingQueue.splice(0, this.CHUNK_SIZE);
+      nodesToProcess.forEach((node) => this.highlightNode(node));
     }
 
     if (this.processingQueue.length > 0) {
@@ -292,20 +324,20 @@ class Highlighter {
   highlightNode(node) {
     // 再次检查节点是否仍在文档中 (可能在异步过程中被移除)
     if (!node.parentNode) return;
-    
+
     const text = node.nodeValue;
     this.regex.lastIndex = 0; // 确保正则从头匹配
-    
+
     // 如果不匹配直接返回 (虽然 scan 阶段查过，但双重保险)
     if (!this.regex.test(text)) return;
 
     const fragment = document.createDocumentFragment();
     let lastIndex = 0;
     let match;
-    
+
     // 重置正则状态进行捕获
     this.regex.lastIndex = 0;
-    
+
     // 使用 exec 循环匹配
     while ((match = this.regex.exec(text)) !== null) {
       // 添加匹配前的文本
