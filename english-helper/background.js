@@ -8,7 +8,7 @@ chrome.sidePanel
 
 // 初始化默认设置
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.get(["userSettings", "vocabulary"], (result) => {
+  chrome.storage.local.get(["userSettings", "vocabulary", "sentences"], (result) => {
     if (!result.userSettings) {
       chrome.storage.local.set({
         userSettings: {
@@ -33,6 +33,9 @@ chrome.runtime.onInstalled.addListener(() => {
     if (!result.vocabulary) {
       chrome.storage.local.set({ vocabulary: {} });
     }
+    if (!result.sentences) {
+      chrome.storage.local.set({ sentences: {} });
+    }
   });
 });
 
@@ -55,6 +58,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "processWord") {
     handleWordProcessing(request).then(sendResponse);
     return true; // 保持消息通道开启以进行异步响应
+  }
+
+  if (request.action === "processSentence") {
+    handleSentenceProcessing(request).then(sendResponse);
+    return true;
   }
 
   if (request.action === "forceSync") {
@@ -206,6 +214,84 @@ async function handleWordProcessing({
   }
 
   return { success: true, data: resultData };
+}
+
+// ---------------- 句子翻译处理 ----------------
+
+async function handleSentenceProcessing({
+  text,
+  url,
+  forceRefresh = false,
+}) {
+  const data = await chrome.storage.local.get(["sentences", "userSettings"]);
+  const sentences = data.sentences || {};
+  const settings = data.userSettings;
+  const sentence = text.trim();
+
+  // 生成句子指纹（用于查重）
+  const sentenceHash = generateSentenceHash(sentence);
+
+  let resultData = null;
+
+  if (sentences[sentenceHash] && !forceRefresh) {
+    // 命中缓存
+    const entry = sentences[sentenceHash];
+    entry.reviewCount = (entry.reviewCount || 0) + 1;
+    entry.lastReview = Date.now();
+    sentences[sentenceHash] = entry;
+    resultData = entry;
+    await chrome.storage.local.set({ sentences });
+    console.log(`[Sentence Cache Hit] Updated entry for ${sentenceHash}`);
+  } else {
+    // 调用 API
+    try {
+      const aiResult = await self.DeepSeekAPI.analyzeSentence(
+        sentence,
+        settings.apiKey
+      );
+
+      resultData = {
+        id: sentenceHash,
+        original: sentence,
+        translation: aiResult.translation,
+        keyWords: aiResult.key_words || [],
+        sourceUrl: url,
+        timestamp: Date.now(),
+        lastReview: Date.now(),
+        reviewCount: 1,
+      };
+
+      sentences[sentenceHash] = resultData;
+      await chrome.storage.local.set({ sentences });
+      console.log(`[Sentence API Call] Created entry for ${sentenceHash}`);
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+
+  return { success: true, data: resultData };
+}
+
+function generateSentenceHash(sentence) {
+  // 使用简单的字符串哈希算法生成稳定的句子ID
+  // 忽略标点符号、多余空格等差异，让相似句子能命中缓存
+  let normalized = sentence
+    .toLowerCase()
+    // 移除所有标点符号（保留字母、数字、空格）
+    .replace(/[^\w\s]/g, '')
+    // 标准化空格（多个空格合并为一个）
+    .replace(/\s+/g, ' ')
+    // 去除首尾空格
+    .trim();
+
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    const char = normalized.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+
+  return "s_" + Math.abs(hash).toString(36);
 }
 
 // ---------------- 同步逻辑 (Gist) ----------------

@@ -10,40 +10,47 @@ async function captureAndProcess() {
   const text = selection.toString().trim();
 
   if (!text) {
-    showToast("请先选择一个单词");
+    showToast("请先选择文本");
     return;
-  }
-
-  // 1. 上下文捕获 (获取完整句子)
-  let contextSentence = text;
-  if (selection.anchorNode && selection.anchorNode.parentElement) {
-    const fullText = selection.anchorNode.parentElement.innerText;
-    // 简单的句子切分逻辑：查找包含该词的句子
-    // 实际项目中可能需要更复杂的正则
-    const sentences = fullText.split(/[.!?。！？]/);
-    const found = sentences.find((s) => s.includes(text));
-    if (found) contextSentence = found.trim();
   }
 
   // 高亮选中内容，用于定位 UI
   const range = selection.getRangeAt(0);
   const rect = range.getBoundingClientRect();
 
+  // 智能判断：单词 vs 句子
+  const isSentenceText = isSentence(text);
+  const action = isSentenceText ? "processSentence" : "processWord";
+
   // 显示 Loading UI
   showFloatingCard(
     rect.left,
     rect.bottom + window.scrollY,
-    "Thinking...",
+    isSentenceText ? "正在翻译..." : "正在分析语境...",
     true
   );
 
-  // 2. 发送给后台处理
-  const response = await chrome.runtime.sendMessage({
-    action: "processWord",
+  // 构建请求
+  const request = {
+    action: action,
     text: text,
-    contextSentence: contextSentence,
     url: window.location.href,
-  });
+  };
+
+  // 单词模式需要上下文
+  if (!isSentenceText) {
+    let contextSentence = text;
+    if (selection.anchorNode && selection.anchorNode.parentElement) {
+      const fullText = selection.anchorNode.parentElement.innerText;
+      const sentences = fullText.split(/[.!?。！？]/);
+      const found = sentences.find((s) => s.includes(text));
+      if (found) contextSentence = found.trim();
+    }
+    request.contextSentence = contextSentence;
+  }
+
+  // 发送给后台处理
+  const response = await chrome.runtime.sendMessage(request);
 
   // 3. 渲染结果
   if (response.error) {
@@ -53,14 +60,39 @@ async function captureAndProcess() {
       `错误: ${response.error}`
     );
   } else {
-    renderResult(
-      response.data,
-      rect.left,
-      rect.bottom + window.scrollY,
-      text,
-      contextSentence
-    );
+    if (isSentenceText) {
+      renderSentenceResult(
+        response.data,
+        rect.left,
+        rect.bottom + window.scrollY,
+        text
+      );
+    } else {
+      renderResult(
+        response.data,
+        rect.left,
+        rect.bottom + window.scrollY,
+        text,
+        request.contextSentence
+      );
+    }
   }
+}
+
+// 判断是否为句子
+function isSentence(text) {
+  const trimmed = text.trim();
+  const wordCount = trimmed.split(/\s+/).length;
+  const charCount = trimmed.length;
+  const hasEndPunctuation = /[.!?。！？]$/.test(trimmed);
+  const hasInternalPunctuation = /[,.;:，。；：]/.test(trimmed);
+
+  // 判断规则：≥3个单词 且 ≥15个字符 或 包含标点
+  if (wordCount >= 3 && charCount >= 15) return true;
+  if (hasInternalPunctuation && wordCount >= 2) return true;
+  if (hasEndPunctuation && wordCount >= 2) return true;
+
+  return false;
 }
 
 // ---------------- UI Helpers ----------------
@@ -222,12 +254,86 @@ function showToast(msg) {
   const toast = document.createElement("div");
   toast.innerText = msg;
   toast.style.cssText = `
-    position: fixed; top: 20px; right: 20px; 
-    background: #333; color: #fff; padding: 10px 20px; 
+    position: fixed; top: 20px; right: 20px;
+    background: #333; color: #fff; padding: 10px 20px;
     border-radius: 4px; z-index: 999999;
   `;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 2000);
+}
+
+// ---------------- 句子翻译渲染 ----------------
+
+function renderSentenceResult(data, x, y, originalSentence) {
+  // 渲染关键词
+  const keyWordsHtml = (data.keyWords || []).map(kw =>
+    `<span class="eah-key-word-tag" title="${kw.translation}">
+      ${kw.word}
+    </span>`
+  ).join('');
+
+  const html = `
+    <div class="eah-sentence-original">
+      ${originalSentence}
+    </div>
+    <div class="eah-sentence-translation">
+      ${data.translation}
+    </div>
+    ${keyWordsHtml ? `<div class="eah-key-words">${keyWordsHtml}</div>` : ''}
+    <div class="eah-context-note">
+      翻译于 ${new Date().toLocaleString()}
+      <span class="eah-reanalyze-btn" style="cursor: pointer; color: #2196F3; margin-left: 10px;">重新翻译</span>
+    </div>
+  `;
+
+  const card = showFloatingCard(x, y, html);
+  card.classList.add('eah-sentence-mode');
+
+  // 绑定重新分析事件
+  const reanalyzeBtn = card.querySelector('.eah-reanalyze-btn');
+  if (reanalyzeBtn) {
+    reanalyzeBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      showFloatingCard(x, y, "正在重新翻译...", true);
+      const response = await chrome.runtime.sendMessage({
+        action: "processSentence",
+        text: originalSentence,
+        url: window.location.href,
+        forceRefresh: true,
+      });
+      if (response.error) {
+        showFloatingCard(x, y, `错误: ${response.error}`);
+      } else {
+        renderSentenceResult(response.data, x, y, originalSentence);
+      }
+    });
+  }
+
+  // 关键词点击查词
+  const keyWordTags = card.querySelectorAll('.eah-key-word-tag');
+  keyWordTags.forEach(tag => {
+    tag.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const word = tag.textContent;
+      // 获取当前位置
+      const rect = card.getBoundingClientRect();
+
+      showFloatingCard(rect.left, rect.bottom + window.scrollY, "正在查词...", true);
+
+      const response = await chrome.runtime.sendMessage({
+        action: 'processWord',
+        text: word,
+        contextSentence: originalSentence,
+        url: window.location.href
+      });
+
+      if (response.error) {
+        showFloatingCard(rect.left, rect.bottom + window.scrollY, `错误: ${response.error}`);
+      } else {
+        renderResult(response.data, rect.left, rect.bottom + window.scrollY, word, originalSentence);
+      }
+    });
+  });
 }
 
 // ---------------- Highlighting Logic (Refactored) ----------------

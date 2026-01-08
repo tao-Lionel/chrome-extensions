@@ -117,3 +117,51 @@
 .eah-highlight:hover {
   background-color: #fde047; /* Yellow-300 */
 }
+
+/* ---------------- 句子卡片模式 ---------------- */
+
+#eah-floating-card.eah-sentence-mode {
+  max-width: 480px;
+  width: 480px;
+}
+
+.eah-sentence-original {
+  font-size: 14px;
+  color: #1e293b;
+  line-height: 1.6;
+  margin-bottom: 10px;
+  padding: 8px;
+  background: #f8fafc;
+  border-left: 3px solid #3b82f6;
+  border-radius: 4px;
+}
+
+.eah-sentence-translation {
+  font-size: 15px;
+  color: #0f172a;
+  line-height: 1.8;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.eah-key-words {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.eah-key-word-tag {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin: 2px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.eah-key-word-tag:hover {
+  background: #bfdbfe;
+}

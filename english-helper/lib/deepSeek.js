@@ -12,6 +12,19 @@ Return a STRICT JSON object (no markdown, no backticks):
 }
 `;
 
+const SENTENCE_SYSTEM_PROMPT = `
+You are a professional English-Chinese translator.
+Translate the given English sentence to natural, fluent Chinese.
+Also extract 3-5 important words that learners should know.
+Return a STRICT JSON object (no markdown, no backticks):
+{
+  "translation": "Chinese translation (natural, context-aware)",
+  "key_words": [
+    {"word": "important word", "translation": "Chinese meaning"}
+  ]
+}
+`;
+
 self.DeepSeekAPI = {
   async analyzeWord(word, contextSentence, apiKey) {
     if (!apiKey) throw new Error("API Key 未配置");
@@ -32,6 +45,44 @@ self.DeepSeekAPI = {
           },
         ],
         temperature: 0.1, // 低温度以保证输出格式稳定
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || "DeepSeek API 调用失败");
+    }
+
+    const data = await response.json();
+    try {
+      const content = data.choices[0].message.content;
+      return JSON.parse(content);
+    } catch (e) {
+      console.error("JSON Parse Error:", data);
+      throw new Error("AI 返回格式错误");
+    }
+  },
+
+  async analyzeSentence(sentence, apiKey) {
+    if (!apiKey) throw new Error("API Key 未配置");
+
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          { role: "system", content: SENTENCE_SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `Translate this sentence: "${sentence}"`,
+          },
+        ],
+        temperature: 0.3,
         response_format: { type: "json_object" },
       }),
     });
