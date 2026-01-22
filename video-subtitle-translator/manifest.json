@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Video Subtitle Translator",
+  "version": "1.0.0",
+  "description": "Real-time subtitle translation for YouTube and X (Twitter) videos using DeepSeek AI",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://api.deepseek.com/*",
+    "https://www.youtube.com/*",
+    "https://youtube.com/*",
+    "https://x.com/*",
+    "https://twitter.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*", "https://youtube.com/*"],
+      "js": ["content/common.js", "content/youtube.js"],
+      "css": ["styles/overlay.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "js": ["content/common.js", "content/twitter.js"],
+      "css": ["styles/overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Video Subtitle Translator",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

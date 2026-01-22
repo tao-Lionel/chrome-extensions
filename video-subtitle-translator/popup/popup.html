@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h2>字幕翻译设置</h2>
+
+      <div class="form-group">
+        <label for="apiKey">DeepSeek API Key</label>
+        <input
+          type="password"
+          id="apiKey"
+          placeholder="sk-..."
+          autocomplete="off"
+        />
+        <small class="hint">
+          获取 API Key:
+          <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a>
+        </small>
+      </div>
+
+      <div class="form-group toggle-group">
+        <label for="autoTranslate">自动翻译字幕</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoTranslate" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="form-group toggle-group">
+        <label for="showOriginal">显示原文</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="showOriginal" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label for="targetLang">目标语言</label>
+        <select id="targetLang">
+          <option value="zh-CN" selected>简体中文</option>
+          <option value="zh-TW">繁体中文</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="fontSize">字体大小</label>
+        <input type="number" id="fontSize" min="12" max="32" value="18" />
+      </div>
+
+      <div class="section-title">平台支持</div>
+
+      <div class="form-group toggle-group">
+        <label for="enableYouTube">YouTube</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="enableYouTube" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="form-group toggle-group">
+        <label for="enableTwitter">X (Twitter)</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="enableTwitter" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <button id="saveBtn">保存设置</button>
+      <div id="status" class="status"></div>
+
+      <div class="cache-section">
+        <button id="clearCacheBtn" class="secondary">清空翻译缓存</button>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
