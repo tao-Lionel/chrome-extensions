@@ -35,7 +35,7 @@
         "default": "Alt+K",
         "mac": "Alt+K"
       },
-      "description": "翻译并保存选中的单词"
+      "description": "翻译并保存选中的单词或句子"
     }
   },
   "icons": {
